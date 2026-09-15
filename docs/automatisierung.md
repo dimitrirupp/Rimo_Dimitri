@@ -101,14 +101,14 @@ Danach per Header-Regex verifizieren, dass der Ziel-Tag aktiv ist.
 
 1. Tab auf `https://rimo.spl-tele.com/rimo` (Login prüfen; ggf. Benutzer einloggen lassen)
 2. Zeit → Zeitschreibung; Periode wählen (Select mit Monats-Optionen)
-3. Tageszelle per Maus-Sequenz klicken; Header-Regex verifizieren
+3. Tageszelle per **`onclick` der Eltern-Zelle** aufrufen (siehe 5a); Header-Regex verifizieren
 4. `Zeit hinzufügen [t]` klicken; neue Zeile abwarten (`waitFor`, 15 s)
 5. Von/Bis setzen; Projekt wählen; 1 s warten (Re-Render)
 6. WP-Button der Zeile (Y-Position) klicken; im Dialog PSP-Zeile wählen (`div.rd`), „OK",
    Dialog-Schließen abwarten
 7. Tätigkeit „Arbeitszeit/ Montage" setzen (sobald Optionen geladen)
 8. Pro Tag wiederholen; Beschreibung = Auto-Text (nicht anfassen)
-9. Tag mit Hotkey `r` freigeben; Status `SUB` verifizieren
+9. Tag freigeben: Toolbar-Button per Titel finden und `onclick()` aufrufen (Hotkey `r` ist unzuverlässig); Status `SUB` verifizieren
 10. Abschluss: Monatskalender prüfen (Stundensummen) + Screenshot pro Tag
 
 ## 8. Verifikation
@@ -116,3 +116,61 @@ Danach per Header-Regex verifizieren, dass der Ziel-Tag aktiv ist.
 - Kalenderstreifen zeigt pro Tag die Stundensumme (Achtung: aktualisiert zeitverzögert — ggf. Tag erneut anklicken)
 - Zeilen-Status: `SUB` = freigegeben, `NEW` = offen
 - Freigegebene Zeilen sind gesperrt (Tätigkeit als Text, keine Selects)
+
+## 9. Weitere Fallstricke (Erkenntnisse vom 14./15.09.2026)
+
+### 9.1 Verwaiste `div.mask` blockiert alle Klicks
+
+Nach abgebrochenen Dialogen/Ajax bleibt manchmal eine unsichtbare Maske
+(`<div class="mask">`, `opacity:0`) über der Seite liegen. Symptom: Klicks auf
+Tageszellen/Buttons kommen nicht an — egal ob synthetisch, Maus-Sequenz oder CDP-Trusted-Input.
+
+Diagnose:
+```js
+document.elementFromPoint(x,y)   // liefert DIV.mask statt dem Zielelement
+```
+Fix (kein Dialog offen → Maske ist stale):
+```js
+[...document.querySelectorAll('div.mask')].forEach(e=>{e.style.pointerEvents='none';e.style.display='none'});
+```
+Danach `elementFromPoint` erneut prüfen (muss das Zielelement treffen, z. B. `DIV.day`).
+
+### 9.2 Tageswechsel: zuverlässigste Methode ist der `onclick` der Elternzelle
+
+Die Tageszelle selbst (`div.day`) hat KEINEN Handler — ihre Eltern-`TD` hat:
+```
+onclick="act('setDay:on:','14',126179390977)"
+```
+Direkter Aufruf (die Request-ID im dritten Argument einfach aus dem Attribut belassen):
+```js
+const d=[...document.querySelectorAll('div.day')].find(e=>e.textContent.trim()==='14');
+d.parentElement.onclick();
+```
+Das funktioniert auch, wenn simulierte Maus-Events versagen. Danach Header-Regex prüfen.
+
+### 9.3 Eingefrorener Tab (Session-Recovery)
+
+Symptom: `evaluate` UND `screenshot` laufen in Timeouts (30–300 s), Tab antwortet nicht
+(vermutlich blockiert ein js-Dialog oder die Seite hängt nach einem abgebrochenen Request).
+
+Recovery:
+1. `close_tab` (geht auch bei hängender Seite, läuft über die Extension)
+2. Neuen Tab auf `https://rimo.spl-tele.com/rimo` öffnen — **kein erneuter Login nötig**,
+   die Browser-Session gilt weiter (Cookie)
+3. Weiterarbeiten
+
+### 9.4 Freigabe: Hotkey `r` unzuverlässig → Toolbar-Button per `onclick()`
+
+Der Button `a[title^="Tag freigeben"]` flackert mit Re-Renders, der Tastendruck `r`
+wurde in einer Session nicht ausgewertet. Robust:
+```js
+const btn=[...document.querySelectorAll('a')].find(e=>(e.getAttribute('title')||'').startsWith('Tag freigeben'));
+btn.onclick ? btn.onclick() : btn.click();
+```
+
+### 9.5 Abgebrochene `evaluate` mitten im Tageswechsel
+
+Wird eine lange `evaluate` (mit Warte-Loops) von außen abgebrochen (Timeout/User-Interrupt),
+kann der Server-State vom DOM-State abweichen (Tab zeigt alten Tag, Aktionen laufen ins Leere).
+→ Nach jedem Abbruch zuerst Header-Regex lesen und Zustand neu synchronisieren,
+im Zweifel Tab neu laden (Session bleibt).
