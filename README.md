@@ -22,6 +22,7 @@ Automatisierungs-Know-how für das SPL-Tele-Projektmanagement-Tool Rimo
 | Skill | Zweck |
 |---|---|
 | [rimo-zeiterfassung](skills/rimo-zeiterfassung/SKILL.md) | Wiederverwendbarer Kimi-Skill: bucht/prüft/gibt Zeiteinträge in Rimo frei (Buchungsregeln, Ablauf, Fehler-Quickies, Leitplanken) |
+| [rimo-zeiten-pruefen](skills/rimo-zeiten-pruefen/SKILL.md) | Read-only-Verifikation: liest gebuchte Tagesblöcke, Zeiten, Stundensummen und Status aus Rimo aus, ohne etwas zu verändern — für Fragen wie „sind die Zeiten von gestern drin?" oder Protokoll-Abgleich |
 
 ## Quellen & Links
 

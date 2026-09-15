@@ -46,7 +46,7 @@ curl.exe -sS -X POST http://127.0.0.1:10086/command \
 | WP-Button | `a` mit Text „Ticket / WP wählen" — liegt in **eigener Tabellenzeile UNTER dem Eintrag** → über `getBoundingClientRect().top` dem Eintrag zuordnen |
 | WP-Dialog | Container mit Text „Arbeitspaket wählen" + „PSP Code"; Zeilen: `td[1]` = PSP-Code, `td[2]` = Bezeichnung; Radio = `div.rd`; Bestätigung = `a` mit Text „OK" |
 | Tätigkeits-Select | `select` mit Option „Arbeitszeit/ Montage" (Optionen laden erst nach WP-Zuordnung) |
-| Tag freigeben | Tastenkürzel **`r`** auf `document.body` (Button flackert mit Re-Renders) |
+| Tag freigeben | Toolbar-Button per `title^="Tag freigeben"` finden und `onclick()` aufrufen — siehe §9.4 (Hotkey `r` ist unzuverlässig) |
 | Status | read-only `input` mit Wert `NEW` oder `SUB` |
 
 ## 4. Werte setzen (Framework-kompatibel)
@@ -64,17 +64,16 @@ const setVal=(el,v)=>{
 
 ## 5. Tageswechsel
 
-Plain `el.click()` auf `div.day` schlägt manchmal fehl. Zuverlässig ist die Maus-Sequenz:
+Die zuverlässigste Methode ist der **`onclick` der Elternzelle** — die Tageszelle (`div.day`)
+selbst hat keinen Handler, ihre Eltern-`TD` trägt `onclick="act('setDay:on:','N',<requestId>)"`:
 
 ```js
-const r=d.getBoundingClientRect();
-const o={bubbles:true,cancelable:true,view:window,clientX:r.x+r.width/2,clientY:r.y+r.height/2};
-d.dispatchEvent(new MouseEvent('mousedown',o));
-d.dispatchEvent(new MouseEvent('mouseup',o));
-d.dispatchEvent(new MouseEvent('click',o));
+const d=[...document.querySelectorAll('div.day')].find(e=>e.textContent.trim()==='14');
+d.parentElement.onclick();
 ```
 
-Danach per Header-Regex verifizieren, dass der Ziel-Tag aktiv ist.
+Siehe §9.2. Eine simulierte Maus-Sequenz (`mousedown`/`mouseup`/`click` mit Koordinaten) ist nur
+Fallback und kann fehlschlagen. Danach per Header-Regex verifizieren, dass der Ziel-Tag aktiv ist.
 
 ## 6. Bekannte Fallstricke
 
