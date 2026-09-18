@@ -14,6 +14,7 @@ Automatisierungs-Know-how für das SPL-Tele-Projektmanagement-Tool Rimo
 | [zeiterfassung.md](docs/zeiterfassung.md) | Workflow Zeitschreibung: Eintrag anlegen, WP wählen, Tätigkeit, Freigabe, Toolbar/Tastenkürzel, Buchungsregeln Dimitri |
 | [projekte-arbeitspakete.md](docs/projekte-arbeitspakete.md) | Projekte 70008 0041/0042/0043, alle buchungsrelevanten Arbeitspakete mit PSP-Codes, PM-Board-Ansichten |
 | [sprints.md](docs/sprints.md) | Sprint-Modell (Halbmonats-Sprints), Sprint-Gruppen, WP-Zuordnung, 80-%-Auslastungsziel |
+| [sprintplanung-analyse.md](docs/sprintplanung-analyse.md) | **Analyse 18.09.2026**: Wie die Sprint-Planung funktioniert (WP → Person → Sprint), alle Kennzahlen (Verfügbar/Geplant/Planbar), eigene 29 WPs, Bearbeiten-vs-Schließen, historische Sprints, Weg zu 36–38 h Auslastung |
 | [automatisierung.md](docs/automatisierung.md) | Technische Doku der Browser-Automatisierung (Kimi WebBridge): Element-Adressierung, JS-Helfer, Fallstricke inkl. Masken-/Frozen-Tab-/Recovery-Themen |
 | [buchungsprotokoll-2026-09.md](docs/buchungsprotokoll-2026-09.md) | Buchungsprotokoll September 2026 (KW 36–38): alle gebuchten Blöcke pro Tag, Projekt-Verteilung, Verifikation |
 
