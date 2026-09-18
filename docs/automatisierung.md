@@ -173,3 +173,83 @@ Wird eine lange `evaluate` (mit Warte-Loops) von außen abgebrochen (Timeout/Use
 kann der Server-State vom DOM-State abweichen (Tab zeigt alten Tag, Aktionen laufen ins Leere).
 → Nach jedem Abbruch zuerst Header-Regex lesen und Zustand neu synchronisieren,
 im Zweifel Tab neu laden (Session bleibt).
+
+## 10. Erkenntnisse 18.09.2026 (Buchung 15.–18.09., DeepSeek/DSH)
+
+Diese Punkte ergänzen §6 und §9 — sie sind bei der Buchung vom 18.09.2026 aufgetreten und
+haben dort zu einer Fehlbuchung geführt (fremde Zeile auf dem falschen Tag).
+
+### 10.1 Der „aktuelle Tag" ist serverseitig pro Session global — nicht pro Tab
+
+Rimo hält den ausgewählten Tag **pro Session (`_s`)** auf dem Server. Zwei Tabs mit demselben
+Link teilen sich diesen Zustand: Klick in Tab A wechselt den Tag auch für Tab B. Besonders
+tückisch: POSTs eines hängenden Tabs (siehe 10.2) werden **verspätet** ausgeführt und
+verschieben den Tag Minuten später — man bucht dann auf einem anderen Tag als die Anzeige zeigt.
+
+**Regel: pro Session immer nur EINEN Tab bedienen.** Vor **jeder** schreibenden Aktion die
+Kopfzeile (Header-Regex) lesen; nach jedem Schritt erneut. Nach einem Tageswechsel immer
+gegenprüfen (Reload oder frischer Tab) — die Anzeige im selben Tab kann veraltet sein.
+
+### 10.2 Tabs werden „taub": POST ohne Antwort, Aktion trotzdem ausgeführt
+
+Symptom: `new Ajax.Request` wird gesendet, aber **kein** `readystatechange` mehr (readyState
+bleibt 1, kein `load`). Triviale `evaluate`-Aufrufe und Seitenaufbau funktionieren weiter.
+Der Server führt die Aktion dennoch aus. Folge: Anzeige und Serverzustand laufen auseinander.
+
+Diagnose:
+```js
+// Hook vor der Aktion setzen, dann Aktion auslösen, dann __rs lesen
+window.__rs=[];const S=XMLHttpRequest.prototype.send;
+XMLHttpRequest.prototype.send=function(b){const s=this;
+  window.__rs.push({ev:'send',b:String(b).replace(/_s=[^&]*/,'_s=X').replace(/_k=[^&]*/,'_k=X').slice(0,90)});
+  this.addEventListener('readystatechange',function(){window.__rs.push({ev:'rs'+s.readyState,st:s.status})});
+  return S.apply(this,arguments)};
+```
+Recovery: **frischen Tab** auf denselben `_s`-Link öffnen (Login/Cookie bleibt). Der neue Tab
+zeigt den echten Serverstand (inkl. Tag!). Alte Tabs danach nicht mehr anfassen.
+
+### 10.3 Zeitfelder speichern NICHT selbst
+
+Die Von/Bis-`input`s haben **keine** Handler (`onchange`/`onblur` = `null`). Ein `setVal` ändert
+nur das DOM. Auf den Server kommt der Wert ausschließlich über
+
+- **„Änderungen speichern [s]"** → POST `341` + `$(form).serializeAll()` + `342=desktopOop`, oder
+- als **Nebenwirkung** eines Projekt- (`select[0]`) bzw. Tätigkeitswechsels (`select[1]`) → POST mit `serialize()`.
+
+Wer also Zeiten setzt und danach einen Dialog öffnet, verliert sie beim nächsten Re-Render
+(der Server antwortet mit seinem alten Stand). **Regel: Zeiten setzen → sofort speichern →
+erst dann Projekt/WP/Tätigkeit.**
+
+### 10.4 Zeilen NIE über Index adressieren
+
+Nach jedem Save sortiert/rendert der Server die Eintragszeilen neu (Sortierung nach Von).
+`rows[1]` ist vor und nach einem Save eine andere Zeile. **Immer inhaltlich identifizieren:**
+über den Optionstext des Projekt-Selects oder über das Von/Bis-Paar. Beispiel-Matcher:
+
+```js
+const rows=[...document.querySelector('form[id^=foo]').querySelectorAll('tr')].filter(tr=>tr.querySelector('select'));
+const timesOf=tr=>[...tr.querySelectorAll('input[type=text]')]
+  .filter(i=>i.readOnly!==true&&!i.disabled&&(i.className||'').toString().indexOf('desc')<0).map(i=>i.value);
+const row=rows.find(tr=>{const t=timesOf(tr);return t[0]==='11:15'&&t[1]==='14:15'});
+```
+
+### 10.5 Komplette Buchung je Block — bewährte Reihenfolge
+
+1. `a[title^="Zeit hinzufügen"]` klicken, 3–5 s warten (neue Zeile, Vorgabezeiten).
+2. Zeiten setzen (Zeile = die **ohne** Projekt: `select.selectedIndex === 0`).
+3. **„Änderungen speichern [s]"** klicken, ~5 s warten.
+4. Projekt-Select setzen (`select[0]`, Optionstext beginnt mit `70008 00xx`), ~5 s warten
+   (Zeile re-rendert, Namen ändern sich).
+5. WP-Button der Zeile: `a` mit Text „Ticket / WP wählen", Zuordnung über
+   `getBoundingClientRect().top`-Nähe zur Zeile. Klick, ~4 s warten.
+6. Im Dialog „Arbeitspaket wählen": Zeile mit `td`-Text **exakt** = PSP-Code suchen
+   (z. B. `37.2`), `div.rd` klicken → Zeile bekommt `class="selected"`; dann `a` mit Text „OK".
+7. Tätigkeits-Select (`select[1]`) auf „Arbeitszeit/ Montage" (Optionen laden erst nach WP).
+8. „Änderungen speichern [s]" klicken, dann verifizieren (Reload + Zeilen lesen).
+
+### 10.6 Lange Sammel-`evaluate` liefern keine Antwort
+
+Ein `evaluate` mit der ganzen Sequenz inkl. `await sleep(...)` lief serverseitig korrekt durch,
+die Antwort kam aber nie zurück (Harness-Timeout, Tab danach „taub"). → **Ein `evaluate` je
+Aktion**, dazwischen Pausen von 3–5 s. Fortschritt immer über Reload + Readback prüfen.
+
