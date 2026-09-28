@@ -3,7 +3,7 @@ name: rimo-zeiterfassung
 description: |
   Zeiterfassung in Rimo (rimo.spl-tele.com) für Dimitri Rupp: Tages-/Wochenbuchungen per Kimi WebBridge im echten Browser erfassen und freigeben. Verwenden, wenn Zeiteinträge in Rimo gebucht, geprüft oder freigegeben werden sollen, oder wenn Fragen zu Dimitris Projekten/Arbeitspaketen (70008 0041/0042/0043) und Buchungsregeln auftreten.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Rimo Zeiterfassung (SPL-Tele, Dimitri Rupp)
@@ -52,3 +52,26 @@ Vollständige Doku: Repo `Rimo_Dimitri` — docs/zeiterfassung.md, docs/automati
 - Keine Konfiguration/Stammdaten/Sprints/Projekte verändern (Unternehmens-Anwendung)
 - Vor Buchung Bestand prüfen; nur fehlende Tage/Blöcke ergänzen
 - Keine Credentials in Dateien/Repo/Logs
+
+## Nachtrag 28.09.2026 (Buchung KW 39)
+
+Die folgenden Punkte sind **neu und wichtiger** als der Ablauf oben; vollständig in
+`docs/automatisierung.md` §11, Werkzeuge in **`scripts/`** (`so.ps1` = Haupteinstieg).
+
+- **„Tauber" Tab:** POSTs laufen serverseitig, Antworten kommen nicht an → DOM veraltet.
+  Erkennung: erwartete Wirkung bleibt aus. Rettung: **`location.reload()`** (Session bleibt),
+  dann Stand neu lesen. **Nie** blind weitere Zeilen anlegen.
+- **Vor jedem Block prüfen, ob eine offene Zeile existiert** und diese wiederverwenden — sonst
+  entstehen verwaiste Zeilen, die nur der Benutzer löschen kann.
+- **Blöcke aufsteigend buchen**, sonst verschiebt Rimo Zeiten („Zeitüberschneidung prüfen").
+- **Eintragszeilen sind keine Blattzeilen** (verschachtelte Tabelle) und nach einem Reload
+  existieren **mehrere `foo*`-Formulare** — nur das mit Projekt-Select ist lebend.
+- **Zeilen über das Von/Bis-Paar adressieren**, nie über den Index.
+- **`class="selected"` ist kein Erfolgssignal** — nach `OK` per Readback prüfen.
+- **Projekte außerhalb des Dropdowns** (z. B. `70008 0001`, Heimat von WP 63 „Redpath - NOC")
+  nur über den **SO-Suchdialog** (`title="Search SO"`); `select[name=460]` ist ein ungültiger
+  CSS-Selektor → über `.name` filtern.
+- **Session-Rettung:** nie auf die parameterlose URL `…/rimo` navigieren; Session-Link des Tabs
+  verwenden, notfalls aus `cdp Page.getNavigationHistory` (`data.entries`) zurückholen.
+- WP unbekannt? `70008 0001` und `70008 0020` fehlen im Dropdown; „NOC Redpath" (WP 63, 0001) ist
+  **nicht** „Prozesse B&W" (WP 2, 0043) — im Zweifel fragen.
