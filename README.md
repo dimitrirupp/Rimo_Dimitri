@@ -76,7 +76,7 @@ Projekt-Info-Hover. Details: [buchungsprotokoll-2026-09.md](docs/buchungsprotoko
 - **GitHub:** `github.com/dimitrirupp/Rimo_Dimitri`
 - **GitLab (SPL):** `gitlab.spl-tele.com/dimitri/Rimo_Dimitri`
 - Beide Remotes werden **parallel** gepflegt. Die Entscheidung über eine endgültige Umstellung
-  von GitHub auf GitLab steht noch aus (Besprechung am 03.10.2026).
+  von GitHub auf GitLab steht noch aus (Besprechung am **Donnerstag, 01.10.2026**).
 - Standardbranch ist **`main`**; `bmd-dimitri` ist per Fast-Forward in `main` enthalten.
 
 ## KI-Skills für Rimo (DSH-Station)
