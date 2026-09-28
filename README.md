@@ -18,6 +18,23 @@ Automatisierungs-Know-how für das SPL-Tele-Projektmanagement-Tool Rimo
 | [automatisierung.md](docs/automatisierung.md) | Technische Doku der Browser-Automatisierung (Kimi WebBridge): Element-Adressierung, JS-Helfer, Fallstricke inkl. Masken-/Frozen-Tab-/Recovery-Themen |
 | [buchungsprotokoll-2026-09.md](docs/buchungsprotokoll-2026-09.md) | Buchungsprotokoll September 2026 (KW 36–38): alle gebuchten Blöcke pro Tag, Projekt-Verteilung, Verifikation |
 
+### scripts/
+
+Wiederverwendbare PowerShell-/JavaScript-Werkzeuge für die Browser-Automatisierung
+(Kimi WebBridge). Einstieg: `so.ps1` lädt `lib.ps1`, `helpers.js`, `blocks.ps1`, `harvest.ps1`,
+`release.ps1`, `book.ps1`.
+
+| Datei | Zweck |
+|---|---|
+| `lib.ps1` | WebBridge-Aufruf, JS-Ausführung, Pfadauflösung (`Invoke-WB`, `Invoke-JS`, `Invoke-JSAct`) |
+| `helpers.js` | DOM-Helfer, wird vor jede Aktion geladen (`__rimoRows`, `__rimoRowInfo`, `__rimoCalSums`) |
+| `so.ps1` | **Haupteinstieg**: `Book-BlockVoll`, `Set-RimoSo`, `Release-RimoTag`, `Show-Tag`, `Show-Voll` |
+| `harvest.ps1`, `blocks.ps1`, `book.ps1`, `release.ps1` | Aufbau in dieser Reihenfolge (Block-, Tages- und Freigabelogik) |
+| `act-*.js` | Einzelaktionen (Zeile hinzufügen, speichern, freigeben, Dialoge, WP wählen) |
+| `row-*.js` | Zeilen-Adressierung über das Von/Bis-Paar (nie über den Index) |
+| `so-*.js` | SO-Suchdialog (Projekt außerhalb des Dropdowns, z. B. `70008 0001`) |
+| `read-*.js`, `verify-*.js`, `dump-*.js` | Readback, Verifikation, Diagnose |
+
 ### skills/
 
 | Skill | Zweck |
@@ -40,8 +57,34 @@ Automatisierungs-Know-how für das SPL-Tele-Projektmanagement-Tool Rimo
 - Hauptprojekt: **70008 0042 Transformation Blue** (WP 5), danach 0041/0043-Themen mischen
 - Jeden Tag freigeben (Status SUB)
 
-## Stand der Buchungen (15.09.2026)
+## Stand der Buchungen (28.09.2026)
 
-- KW 36 (01.–04.09.): 9,25 / 9,25 / 9,25 / 5,75 ✓ freigegeben
-- KW 37 (07.–11.09.): 9,25 × 4 + 5,75 ✓ freigegeben
-- Mo 14.09.: 10,00 h (07:30–17:30, Blöcke 5/2/2/1) ✓ freigegeben
+| Zeitraum | Summen je Tag | Status |
+|---|---|---|
+| KW 36 (01.–04.09.) | 9,25 / 9,25 / 9,25 / 5,75 | ✓ freigegeben |
+| KW 37 (07.–11.09.) | 9,25 × 4 / 5,75 | ✓ freigegeben |
+| Mo 14.09. | 10,00 (07:30–17:30, Blöcke 5/2/2/1) | ✓ freigegeben |
+| KW 38 (15.–18.09.) | 9,25 / 9,25 / 9,25 / 5,75 | ✓ freigegeben |
+| **KW 39 (21.–25.09.)** | **9,25 / 9,25 / 9,25 / 9,75 / 5,75** | **✓ freigegeben** |
+
+Offen bei Buchung von KW 39: die Woche 21.–25.09. ist vollständig erfasst (**43,25 h**),
+alle Einträge Status `SUB`, verifiziert über Monatskalender, Zeilen-Readback und
+Projekt-Info-Hover. Details: [buchungsprotokoll-2026-09.md](docs/buchungsprotokoll-2026-09.md).
+
+## Ablage und Spiegelung
+
+- **GitHub:** `github.com/dimitrirupp/Rimo_Dimitri`
+- **GitLab (SPL):** `gitlab.spl-tele.com/dimitri/Rimo_Dimitri`
+- Beide Remotes werden **parallel** gepflegt. Die Entscheidung über eine endgültige Umstellung
+  von GitHub auf GitLab steht noch aus (Besprechung am 03.10.2026).
+- Standardbranch ist **`main`**; `bmd-dimitri` ist per Fast-Forward in `main` enthalten.
+
+## KI-Skills für Rimo (DSH-Station)
+
+Liegen unter `~/.dsh/skills/` und werden automatisch geladen:
+
+| Skill | Zweck |
+|---|---|
+| `rimo-zeiterfassung` | Zeiten buchen, prüfen, freigeben (verifiziertes Verfahren inkl. Taub-Tab-Rettung, SO-Dialog) |
+| `rimo-projektplanung` | Projekte und Arbeitspakete lesen/zuordnen, PSP-Codes, MyTasks |
+| `rimo-sprint-management` | Sprint-Zuordnung, Auslastung, Kennzahlen, Plan/Ist-Abgleich |

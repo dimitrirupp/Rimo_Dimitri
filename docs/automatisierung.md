@@ -253,3 +253,115 @@ Ein `evaluate` mit der ganzen Sequenz inkl. `await sleep(...)` lief serverseitig
 die Antwort kam aber nie zurück (Harness-Timeout, Tab danach „taub"). → **Ein `evaluate` je
 Aktion**, dazwischen Pausen von 3–5 s. Fortschritt immer über Reload + Readback prüfen.
 
+## 11. Erkenntnisse 28.09.2026 (Buchung 21.–25.09., DeepSeek/DSH)
+
+Diese Punkte ergänzen §6, §9 und §10. Sie sind bei der KW-39-Buchung aufgetreten — teils als
+Fehler, teils als Abkürzung. Ergebnis der Buchung: `docs/buchungsprotokoll-2026-09.md`, KW 39.
+Wiederverwendbare Skripte: **`scripts/`** in diesem Repo (`so.ps1` lädt alles Nötige).
+
+### 11.1 Session-Rettung: nie auf die parameterlose URL navigieren
+
+Ein `navigate` auf `https://rimo.spl-tele.com/rimo` **ohne** `_s`/`_k` landet auf der
+Login-Maske — auch wenn der Tab Sekunden vorher gültig angemeldet war. Die Server-Session lebt
+weiter; nur der Tab hat den Zeiger auf sie verloren.
+
+Wiederherstellung ohne Zugangsdaten:
+
+```js
+// cdp Page.getNavigationHistory -> letzter Eintrag mit "?_s="
+// Achtung: die Antwort liegt unter data.entries (nicht data.result.entries)
+const e = entries.filter(x => /[?&]_s=/.test(x.url)).pop();
+// diesen Eintrag per navigate aufrufen
+```
+
+**Regel: den Session-Link des Tabs benutzen (aus `list_tabs` oder der Navigationshistorie),
+niemals selbst eine URL bauen.**
+
+### 11.2 Nach jedem Reload existieren mehrere `foo*`-Formulare
+
+Die Zeitschreibung ist ein `form[id^=foo]` — die ID ist **pro Render neu**. Nach einem Reload
+bleiben altes und neues Formular im DOM. Die veraltete Fassung enthält keine Eintragszeilen.
+
+Robuste Bestimmung des **lebenden** Formulars:
+
+```js
+const forms = [...document.querySelectorAll('form')];
+const withEntry = forms.filter(f => [...f.querySelectorAll('tr')].some(isEntryTr));
+// isEntryTr: tr enthaelt ein select mit Option /^70008/
+```
+
+### 11.3 Eintragszeilen sind NICHT Blattzeilen
+
+Eine Eintragszeile enthält eine **verschachtelte Tabelle** (Projekt-Info-/Suchbereich).
+Ein Filter `tr.querySelectorAll('tr').length === 0` findet sie deshalb **nicht** — genau daran
+scheiterte der erste KW-39-Lauf. Korrekt ist „innerste Zeile mit Projekt-Select":
+
+```js
+const cands = [...f.querySelectorAll('tr')].filter(has70008);
+const rows = cands.filter(tr => !cands.some(o => o !== tr && tr.contains(o)));
+```
+
+### 11.4 Zeilen über das Von/Bis-Paar adressieren, offene Zeilen wiederverwenden
+
+Nach dem Speichern sortiert der Server neu (§10.4). Jede Aktion (`row-set-times.js`,
+`row-set-project.js`, `row-click-wp.js`, `row-set-activity.js`) sucht ihre Zeile deshalb über
+das **Von/Bis-Paar**.
+
+**Wichtigste Effizienzregel:** Vor dem Anlegen immer prüfen, ob bereits eine **offene** Zeile
+existiert (`select.selectedIndex === 0`) — und diese befüllen. Blindes `Zeit hinzufügen` auf
+einem tauben Tab erzeugt sonst **verwaiste Zeilen**, die nur der Benutzer löschen kann
+(Leitplanke: keine Löschungen durch den Agenten).
+
+### 11.5 Blöcke aufsteigend buchen — sonst verschiebt Rimo
+
+Wird eine neue Zeile auf eine **frühere** Zeit gesetzt als bestehende Zeilen, verschiebt der
+Server die nachfolgende Zeile und meldet „Zeitüberschneidung prüfen". Reihenfolge der Blöcke
+also immer **von früh nach spät**, und pro Block nur **eine** offene Zeile.
+
+### 11.6 SO-Suchdialog: Projekte außerhalb des Dropdowns
+
+Das Projekt-/Auftrags-Dropdown der Zeitschreibung enthält nur die bevorrechtigten Projekte
+(0041/0042/0043/70008). Alles andere — z. B. **70008 0001 Project-Overhead**, Heimat von
+WP 63 „Redpath - NOC" — nur über den Link mit `title="Search SO"`:
+
+1. `select` mit `name === '460'` auf `SalesOrderNumber` setzen.
+   **Fallstrick:** `select[name=460]` ist ein **ungültiger CSS-Selektor** (Attributwert beginnt
+   mit einer Ziffer) → über `.name` filtern, nicht per Attributselektor.
+2. `input.searchBox` auf die SO-Nummer setzen (`70008 0001`), Link `title="Filter"` klicken.
+3. In der Trefferliste die Zeile mit **exakt** `70008 0001` wählen (`div.rd`), dann `OK`.
+
+Die Suche ist eine Teilstring-Suche: `0001` liefert 439 Treffer, `70008 0001` genau einen.
+
+### 11.7 `class="selected"` ist kein Erfolgssignal
+
+Nach dem Klick auf den Radio-Punkt im Dialog „Arbeitspaket wählen" blieb `class="selected"` am
+28.09.2026 **leer**, die Auswahl wirkte trotzdem (das WP-Label erschien nach `OK`). Umgekehrt
+belegt eine gesetzte Klasse nichts über den Serverzustand. **Immer per Readback verifizieren.**
+
+### 11.8 Freigegebene Tage haben eine andere DOM-Struktur
+
+Auf `SUB`-Tagen gibt es **keine** `select`s mehr. Die Eintragszeile erkennt man am
+`input.desc`, den WP-Text als Zeileninhalt; die Projektzuordnung steht im Info-Hover
+(`Name 0042`), dessen Zeile **vor** der zugehörigen Eintragszeile liegt. Der Kalenderstreifen
+liefert die Tagessummen in seiner **3. Tabellenzeile**.
+
+### 11.9 PowerShell-Fallstrick: `[System.IO.File]` vs. PS-Location
+
+`Test-Path 'datei.js'` prüft relativ zur **PowerShell-Location**, `[System.IO.File]::ReadAllText('datei.js')`
+aber relativ zum **Prozess-CWD**. Beide können auseinanderfallen → relative JS-Pfade scheitern
+scheinbar grundlos. Lösung: absolute Pfade erzwingen (`Resolve-RimoFile` in `scripts/lib.ps1`).
+
+### 11.10 Bewährter Ablauf je Block (KW-39-Fassung)
+
+1. Reload (`location.reload()`; Session bleibt) → Ist-Stand lesen.
+2. Offene Zeile suchen; nur wenn keine existiert: `Zeit hinzufügen` + 8 s + **Reload** + prüfen.
+3. Zeiten setzen → `Änderungen speichern [s]` → 5 s.
+4. Projekt setzen (Dropdown **oder** SO-Dialog) → 6 s.
+5. WP-Dialog → PSP-Zelle → `div.rd` → `OK` → 6 s.
+6. Tätigkeit „Arbeitszeit/ Montage" → speichern → 5 s.
+7. **Reload + Readback** der Zeile (Von/Bis, Projekt, WP-Label, Tätigkeit, Status).
+8. Nach dem letzten Block: `Tag freigeben`, Reload, alle Status `SUB` prüfen.
+
+Skripte je Schritt: `Rimo_Dimitri/scripts/` (`so.ps1` → `Book-BlockVoll`, `Release-RimoTag`,
+`Show-Tag`).
+

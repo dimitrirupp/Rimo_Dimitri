@@ -71,3 +71,57 @@ Technische Lehren dazu: `docs/automatisierung.md` §10.
 Verifikation am 14.09.2026: Monatskalender zeigt 9.25/9.25/9.25/5.75 (KW36) und 9.25×4 + 5.75 (KW37),
 alle Einträge Status SUB. Stichproben-Screenshots je Tag vorhanden.
 Verifikation am 15.09.2026: 14.09. zeigt 4 Einträge (5:00/2:00/2:00/1:00 = 10:00), alle SUB.
+
+---
+
+# KW 39 (21.–25.09.2026) — gebucht am 28.09.2026 (DeepSeek/DSH)
+
+Auftrag Dimitri (28.09.2026) mit Vorgaben je Tag; Montag „wie Mittwoch 09.09.", Donnerstag
+ausdrücklich mit **9,75 h** (Summe der vier bestellten Blöcke). Tätigkeit durchgehend
+„Arbeitszeit/ Montage", Beschreibung = Auto-Text, alle Tage **freigegeben (SUB)**.
+
+| Datum | Block 1 | Block 2 | Block 3 | Block 4 | Summe |
+|---|---|---|---|---|---|
+| Mo 21.09. | 0042:5, 07:15–11:15 (4:00) | 0043:2 Prozesse B&W, 11:15–14:15 (3:00) | 0041:47.7 BMD Support, 14:15–16:30 (2:15) | – | **9,25** |
+| Di 22.09. | 0042:5, 07:15–12:45 (5:30) | 0041:47.7 BMD Support, 12:45–13:45 (1:00) | 0001:63 Redpath – NOC, 13:45–16:30 (2:45) | – | **9,25** |
+| Mi 23.09. | 0041:54 GitLab, 07:15–14:30 (7:15) | 0041:50.2 TEF Telefonica, 14:30–16:30 (2:00) | – | – | **9,25** |
+| Do 24.09. | 0042:5, 07:15–12:45 (5:30) | 0041:50.2 TEF Telefonica, 12:45–13:45 (1:00) | 0001:63 Redpath – NOC, 13:45–15:45 (2:00) | 0041:36.2 Admin & Internes, 15:45–17:00 (1:15) | **9,75** |
+| Fr 25.09. | 0001:63 Redpath – NOC, 07:15–08:15 (1:00) | 0041:54 GitLab, 08:15–13:00 (4:45) | – | – | **5,75** |
+
+**Woche total: 43,25 h.**
+
+Verifikation am 28.09.2026 (Live, Kimi WebBridge): Monatskalender je Tag
+`9.25 / 9.25 / 9.25 / 9.75 / 5.75`; je Tag alle Zeilen `SUB`; Anzahl Einträge
+3/3/2/4/2; Projektzuordnung je Zeile über den Info-Hover bestätigt
+(0042 / 0043 / 0041 / 0001).
+
+## Projekt-Verteilung KW 39
+
+| Projekt : WP | Stunden |
+|---|---|
+| 70008 0042 : 5 Projekt Management und Administration | 15,00 |
+| 70008 0041 : 54 GitLab (neu angelegt 28.09.2026, 20 h geplant) | 12,00 |
+| 70008 0001 : 63 Redpath – NOC | 5,75 |
+| 70008 0041 : 47.7 BMD Support | 3,25 |
+| 70008 0043 : 2 Prozesse B&W | 3,00 |
+| 70008 0041 : 50.2 TEF Telefonica | 3,00 |
+| 70008 0041 : 36.2 Administratives & Internes | 1,25 |
+
+## Abweichungen Planung ↔ Ist (zur Kenntnis, nicht korrigiert)
+
+- **47.7 BMD Support**: im Sprint 09/26 2/2 mit 2 h geplant, in KW 39 mit 3,25 h bebucht.
+- **0043 : 2 Prozesse B&W**: 0 h im Sprint geplant (WP hängt in keinem Sprint), 3 h bebucht.
+- **54 GitLab**: 20 h geplant, 12 h in KW 39 bebucht (8 h offen).
+- **9,75 h am Donnerstag** ist eine bewusste Abweichung von der 9,25-h-Regel (Auftrag Dimitri).
+
+## Zwischenfall und Behebung (28.09.2026)
+
+Beim Öffnen der Zeitschreibung wurde die Rimo-Session durch eine Navigation auf die
+**parameterlose** URL `…/rimo` ungültig gemacht (Login-Maske). Wiederherstellung über den
+Session-Link des Tabs (aus `Page.getNavigationHistory`) — die Sitzung selbst lebte weiter.
+
+Bei der Montagsbuchung erzeugte ein **„tauber" Tab** (POSTs liefen serverseitig, Antworten kamen
+nicht an) zwei zusätzliche leere Zeilen; Rimo meldete daraufhin eine Zeitüberschneidung und
+verschob eine Zeile. **Dimitri hat die verwaiste Zeile am 28.09.2026 selbst entfernt**
+(Status quo der Leitplanke „keine Löschungen"). Danach war der Tag mit 9,25 h korrekt.
+Technische Lehren: `docs/automatisierung.md` §11.
