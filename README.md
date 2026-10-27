@@ -17,6 +17,7 @@ Automatisierungs-Know-how für das SPL-Tele-Projektmanagement-Tool Rimo
 | [sprintplanung-analyse.md](docs/sprintplanung-analyse.md) | **Analyse 18.09.2026**: Wie die Sprint-Planung funktioniert (WP → Person → Sprint), alle Kennzahlen (Verfügbar/Geplant/Planbar), eigene 29 WPs, Bearbeiten-vs-Schließen, historische Sprints, Weg zu 36–38 h Auslastung |
 | [automatisierung.md](docs/automatisierung.md) | Technische Doku der Browser-Automatisierung (Kimi WebBridge): Element-Adressierung, JS-Helfer, Fallstricke inkl. Masken-/Frozen-Tab-/Recovery-Themen |
 | [buchungsprotokoll-2026-09.md](docs/buchungsprotokoll-2026-09.md) | Buchungsprotokoll September 2026 (KW 36–38): alle gebuchten Blöcke pro Tag, Projekt-Verteilung, Verifikation |
+| [buchungsprotokoll-2026-10.md](docs/buchungsprotokoll-2026-10.md) | Buchungsprotokoll Oktober 2026 (KW 42–43): Schema 60 % NOC / 30 min Admin / Rest TEF-CloseOut-BMD, Tages-Soll 8,75/5,50 h, alle Blöcke, Verifikation, Zwischenfall 21.10. |
 
 ### scripts/
 
@@ -52,12 +53,16 @@ Wiederverwendbare PowerShell-/JavaScript-Werkzeuge für die Browser-Automatisier
 
 ## Buchungsregeln Dimitri (Kurzfassung)
 
-- Mo–Do: **9,25 h** (07:15–16:30) · Fr: **07:15–13:00 (5,75 h)**
+- **Ab Oktober 2026:** Mo–Do **8,75 h** brutto (07:30–16:15, 8,25 h netto) · Fr **5,50 h**
+  (07:30–13:00) — Arbeitszeitmodell in Rimo, Woche 38,50 h netto.
+  Davor (Sep 2026): Mo–Do 9,25 h (07:15–16:30) · Fr 5,75 h (07:15–13:00).
 - Tätigkeit „Arbeitszeit/ Montage", Beschreibung = Auto-Text
-- Hauptprojekt: **70008 0042 Transformation Blue** (WP 5), danach 0041/0043-Themen mischen
+- Oktober-Schema: 60 % NOC `70008 0043:2` · 0:30 Admin `0041:36.2` · Rest je 1/3 auf
+  `0041:50.2` TEF / `0041:37.2` CloseOut / `0041:47.7` BMD (Details:
+  [buchungsprotokoll-2026-10.md](docs/buchungsprotokoll-2026-10.md))
 - Jeden Tag freigeben (Status SUB)
 
-## Stand der Buchungen (28.09.2026)
+## Stand der Buchungen (27.10.2026)
 
 | Zeitraum | Summen je Tag | Status |
 |---|---|---|
@@ -66,6 +71,9 @@ Wiederverwendbare PowerShell-/JavaScript-Werkzeuge für die Browser-Automatisier
 | Mo 14.09. | 10,00 (07:30–17:30, Blöcke 5/2/2/1) | ✓ freigegeben |
 | KW 38 (15.–18.09.) | 9,25 / 9,25 / 9,25 / 5,75 | ✓ freigegeben |
 | **KW 39 (21.–25.09.)** | **9,25 / 9,25 / 9,25 / 9,75 / 5,75** | **✓ freigegeben** |
+| KW 40 (28.09.–02.10.) | 10,25 (01.10.) / 5,75 (02.10.) | ✓ freigegeben |
+| KW 41 (05.–09.10.) | 8,75 × 4 / 5,50 (Urlaub, `U`) | ✓ freigegeben |
+| **KW 42/43 (12.–23.10.)** | **12.10.: 9,50 (bestand) · 13.–15., 19., 22.: 8,75 · 21.: 8,75 (Dimitri) · 16., 23.: 5,50** | **✓ freigegeben** |
 
 Offen bei Buchung von KW 39: die Woche 21.–25.09. ist vollständig erfasst (**43,25 h**),
 alle Einträge Status `SUB`, verifiziert über Monatskalender, Zeilen-Readback und
